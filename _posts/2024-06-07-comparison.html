@@ -1,0 +1,813 @@
+---
+permalink: /comparison_to_baselines
+---
+<html lang="en">
+  <style>
+    /* Custom player style */
+    midi-player {
+        display: block;
+        width: inherit;
+        height: 25px;
+        margin: 0 0px 0rem 0px;
+        margin-top: 0;
+    }
+    
+    midi-player::part(control-panel) {
+        background: linear-gradient(#fefefe, #e9e9e9);
+        border: 1px solid #e9e9e9;
+        border-top: none;
+        border-radius: 0px 0px 10px 10px;
+    }
+    
+    midi-visualizer .piano-roll-visualizer {
+        background: #fefefe;
+        border: 1px solid #e9e9e9;
+        border-bottom: none;
+        border-radius: 0px 0px 0 0;
+        margin: 0 0px;
+        margin-bottom: 0;
+        width: inherit;
+        overflow: auto;
+    }
+    
+    midi-visualizer svg {
+            margin: 2px; }
+    
+    midi-visualizer svg rect.note {
+            opacity: calc(min(1, (var(--midi-velocity) + 30) / 128) * 0.75); }
+    
+    midi-visualizer svg rect.note.active {
+        opacity: calc(min(1, (var(--midi-velocity) + 30) / 128) * 0.9);
+        stroke: rgb(0, 0, 0);
+        stroke-width: 1;
+        stroke-opacity: 1; }
+    
+        midi-visualizer svg rect.note[data-program="0"] {
+        fill: #1f77b4; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="8"] {
+        fill: #2ca02c; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="16"] {
+        fill: #ffbb78; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="24"] {
+        fill: #07e1e9; opacity: 20%;}
+    
+        midi-visualizer svg rect.note[data-program="32"] {
+        fill: #9467bd; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="40"] {
+        fill: #8c564b; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="48"] {
+        fill: #e377c2; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="56"] {
+        fill: #ff7f0e; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="64"] {
+        fill: #bcbd22; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="72"] {
+        fill: #17becf; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="80"] {
+        fill: #1b9e77; opacity: 50%;}
+    
+        midi-visualizer svg rect.note[data-program="88"] {
+        fill: #d62728; }
+
+        midi-visualizer svg rect.note[data-program="89"] {
+        fill: #98df8a; opacity: 50%;}
+
+    
+    
+    
+        @import url(https://fonts.googleapis.com/css?family=Lato:400,700,900,300);
+        /* MAKE IT CUTE ----- */
+        .tabs {
+        position: relative;
+        display: flex;
+        min-height: 250;
+        border-radius: 10px 10px 0px 0px;
+        overflow: hidden;
+        }
+    
+        .tabby-tab {
+        width: 200px;
+        }
+    
+        .tabby-tab label {
+        display: block;
+        box-sizing: border-box;
+        /* tab content must clear this */
+            height: 25px;
+        
+        padding: 3px;
+        text-align: center;
+        background: #c4e7f0;
+        cursor: pointer;
+        border-radius: 10px 5px 10px 0px;
+        }
+    
+        .tabby-tab label:hover {
+        background: #82bcce;
+        }
+    
+        .tabby-content {
+        position: absolute;
+        left: 0px; bottom: 0; right: 0px;
+        /* clear the tab labels */
+            top: 25; 
+        padding: 0px;
+        border-radius: 0px 0px 0px 0px;
+        background: #ffffff;
+        }
+    
+        /* MAKE IT WORK ----- */
+        .tabby-tab [type=radio] { display: none; }
+        [type=radio]:checked ~ label {
+        background: #3fb2d5;
+        z-index: 2;
+        }
+    
+        [type=radio]:checked ~ label ~ .tabby-content {
+        z-index: 1;
+        /* show/hide */
+            opacity: 1;
+            transform: scale(1);
+        }
+      
+      
+  </style>
+  {% include head.html %}
+
+  <body id="page-top">
+      <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+                <a class="page-scroll" href="/">Abstract</a>
+              </li>
+              <li>
+                  <a class="page-scroll" href="/#arr_demo">Accompaniment Arrangement Demo</a>
+              </li>
+              <li>
+                  <a class="page-scroll" href="/#orc_demo">Orchestration Demo</a>
+              </li>
+              <li>
+                <a class="page-scroll" href="#page-top">Comparison to Baselines</a>
+              </li>
+              <li>
+                  <a class="page-scroll" href="/ablation_study">Ablation Study</a>
+              </li>
+            </ul>
+          </div>
+          <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container-fluid -->
+      </nav>
+
+      <section class="bg-white">
+        <div class="container no-gutter small-padding" id="baselines">
+          <p class="h1"><hr class="primary"></p>
+          <p class="h3">Ours vs Baselines</p>
+          <p class='text-justify'>We compare our system with three existing methods for accompaniment arrangement: 1) <a href="https://arxiv.org/abs/2008.07703" target="_blank">PopMAG</a>, 2) <a href="https://arxiv.org/abs/2306.08620" target="_blank">Anticipatory Music Transformer (AMT)</a>, and 3) <a href="https://arxiv.org/abs/2305.10841" target="_blank">GETMusic</a>. The first two are Transformer-based and the last one is a diffusion model. The arrangement results are presented with five tabs in the following order: 1) <em>Ours</em>, 2) <em>AMT</em>, 3) <em>GETMusic</em>, 3) <em>PopMAG</em>, and 3) <em>the input lead sheet</em>.
+          </p>
+      
+      
+          <p class='text-justify'></p>
+          <p class="h4"><b style="color:#6c06c0;">[Demo-11]</b> <b>Temperley Hornpipe</b></p>
+          <ul>
+            <li>Genre: Folk</li>
+            <li>Length: 24 bars</li>
+            <li>BPM: 100 </li>
+            <li>Source: Nottingham Dataset </li>
+          </ul>
+          <div class="tabs">
+            <div class="tabby-tab">
+              <input type="radio" id="tab-10-1" name="tab-10" checked>
+              <label for="tab-10-1">Ours</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p1/Ours.mid"
+                  id="comp_p1_ours-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p1/Ours.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p1_ours-visualizer"
+                  id="comp_p1_ours-player">
+                </midi-player>
+                <audio id="comp_p1_ours-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p1/Audio Export/Ours.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+      
+            <div class="tabby-tab">
+              <input type="radio" id="tab-10-2" name="tab-10">
+              <label for="tab-10-2">AMT</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p1/AMT.mid"
+                  id="comp_p1_amt-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p1/AMT.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p1_amt-visualizer"
+                  id="comp_p1_amt-player">
+                </midi-player>
+                <audio id="comp_p1_amt-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p1/Audio Export/AMT.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+                
+            <div class="tabby-tab">
+              <input type="radio" id="tab-10-3" name="tab-10">
+              <label for="tab-10-3">GETMusic</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p1/GETMusic.mid"
+                  id="comp_p1_getmusic-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p1/GETMusic.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p1_getmusic-visualizer"
+                  id="comp_p1_getmusic-player">
+                </midi-player>
+                <audio id="comp_p1_getmusic-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p1/Audio Export/GETMusic.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+      
+            <div class="tabby-tab">
+              <input type="radio" id="tab-10-4" name="tab-10">
+              <label for="tab-10-4">PopMAG</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p1/PopMAG.mid"
+                  id="comp_p1_popmag-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p1/PopMAG.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p1_popmag-visualizer"
+                  id="comp_p1_popmag-player">
+                </midi-player>
+                <audio id="comp_p1_popmag-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p1/Audio Export/PopMAG.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+      
+            <div class="tabby-tab">
+              <input type="radio" id="tab-10-5" name="tab-10">
+              <label for="tab-10-5">Lead Sheet (Input)</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p1/leadsheet.mid"
+                  id="comp_p1_leadsheet-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p1/leadsheet.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p1_leadsheet-visualizer"
+                  id="comp_p1_leadsheet-player">
+                </midi-player>
+                <audio id="comp_p1_leadsheet-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p1/Audio Export/leadsheet.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+          </div>
+      
+          <p class='text-justify'></p>
+          <p class="h4"><b style="color:#6c06c0;">[Demo-12]</b> <b>Boggy Brays</b></p>
+          <ul>
+            <li>Genre: Folk</li>
+            <li>Length: 32 bars</li>
+            <li>BPM: 100 </li>
+            <li>Source: Nottingham Dataset </li>
+          </ul>
+          <div class="tabs">
+            <div class="tabby-tab">
+              <input type="radio" id="tab-6-1" name="tab-6" checked>
+              <label for="tab-6-1">Ours</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p2/Ours.mid"
+                  id="comp_p2_ours-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p2/Ours.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p2_ours-visualizer"
+                  id="comp_p2_ours-player">
+                </midi-player>
+                <audio id="comp_p2_ours-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p2/Audio Export/Ours.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-6-2" name="tab-6">
+              <label for="tab-6-2">AMT</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p2/AMT.mid"
+                  id="comp_p2_amt-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p2/AMT.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p2_amt-visualizer"
+                  id="comp_p2_amt-player">
+                </midi-player>
+                <audio id="comp_p2_amt-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p2/Audio Export/AMT.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+                
+            <div class="tabby-tab">
+              <input type="radio" id="tab-6-3" name="tab-6">
+              <label for="tab-6-3">GETMusic</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p2/GETMusic.mid"
+                  id="comp_p2_getmusic-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p2/GETMusic.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p2_getmusic-visualizer"
+                  id="comp_p2_getmusic-player">
+                </midi-player>
+                <audio id="comp_p2_getmusic-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p2/Audio Export/GETMusic.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-6-4" name="tab-6">
+              <label for="tab-6-4">PopMAG</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p2/PopMAG.mid"
+                  id="comp_p2_popmag-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p2/PopMAG.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p2_popmag-visualizer"
+                  id="comp_p2_popmag-player">
+                </midi-player>
+                <audio id="comp_p2_popmag-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p2/Audio Export/PopMAG.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-6-5" name="tab-6">
+              <label for="tab-6-5">Lead Sheet (Input)</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p2/leadsheet.mid"
+                  id="comp_p2_leadsheet-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p2/leadsheet.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p2_leadsheet-visualizer"
+                  id="comp_p2_leadsheet-player">
+                </midi-player>
+                <audio id="comp_p2_leadsheet-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p2/Audio Export/leadsheet.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+          </div>
+      
+          <p class='text-justify'></p>
+          <p class="h4"><b style="color:#6c06c0;">[Demo-13]</b> <b>La Marseillaise</b></p>
+          <ul>
+            <li>Genre: March</li>
+            <li>Length: 28 bars</li>
+            <li>BPM: 100 </li>
+            <li>Source: WikiMT Dataset </li>
+          </ul>
+          <div class="tabs">
+            <div class="tabby-tab">
+              <input type="radio" id="tab-7-1" name="tab-7" checked>
+              <label for="tab-7-1">Ours</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p3/Ours.mid"
+                  id="comp_p3_ours-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p3/Ours.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p3_ours-visualizer"
+                  id="comp_p3_ours-player">
+                </midi-player>
+                <audio id="comp_p3_ours-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p3/Audio Export/Ours.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-7-2" name="tab-7">
+              <label for="tab-7-2">AMT</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p3/AMT.mid"
+                  id="comp_p3_amt-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p3/AMT.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p3_amt-visualizer"
+                  id="comp_p3_amt-player">
+                </midi-player>
+                <audio id="comp_p3_amt-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p3/Audio Export/AMT.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+                
+            <div class="tabby-tab">
+              <input type="radio" id="tab-7-3" name="tab-7">
+              <label for="tab-7-3">GETMusic</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p3/GETMusic.mid"
+                  id="comp_p3_getmusic-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p3/GETMusic.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p3_getmusic-visualizer"
+                  id="comp_p3_getmusic-player">
+                </midi-player>
+                <audio id="comp_p3_getmusic-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p3/Audio Export/GETMusic.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-7-4" name="tab-7">
+              <label for="tab-7-4">PopMAG</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p3/PopMAG.mid"
+                  id="comp_p3_popmag-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p3/PopMAG.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p3_popmag-visualizer"
+                  id="comp_p3_popmag-player">
+                </midi-player>
+                <audio id="comp_p3_popmag-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p3/Audio Export/PopMAG.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-7-5" name="tab-7">
+              <label for="tab-7-5">Lead Sheet (Input)</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p3/leadsheet.mid"
+                  id="comp_p3_leadsheet-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p3/leadsheet.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p3_leadsheet-visualizer"
+                  id="comp_p3_leadsheet-player">
+                </midi-player>
+                <audio id="comp_p3_leadsheet-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p3/Audio Export/leadsheet.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+          </div>
+      
+      
+          <p class='text-justify'></p>
+          <p class="h4"><b style="color:#6c06c0;">[Demo-14]</b> <b>Satin Doll</b></p>
+          <ul>
+            <li>Genre: Jazz</li>
+            <li>Length: 32 bars</li>
+            <li>BPM: 100 </li>
+            <li>Source: WikiMT Dataset </li>
+          </ul>
+          <div class="tabs">
+            <div class="tabby-tab">
+              <input type="radio" id="tab-8-1" name="tab-8" checked>
+              <label for="tab-8-1">Ours</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p4/Ours.mid"
+                  id="comp_p4_ours-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p4/Ours.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p4_ours-visualizer"
+                  id="comp_p4_ours-player">
+                </midi-player>
+                <audio id="comp_p4_ours-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p4/Audio Export/Ours.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-8-2" name="tab-8">
+              <label for="tab-8-2">AMT</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p4/AMT.mid"
+                  id="comp_p4_amt-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p4/AMT.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p4_amt-visualizer"
+                  id="comp_p4_amt-player">
+                </midi-player>
+                <audio id="comp_p4_amt-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p4/Audio Export/AMT.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+                
+            <div class="tabby-tab">
+              <input type="radio" id="tab-8-3" name="tab-8">
+              <label for="tab-8-3">GETMusic</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p4/GETMusic.mid"
+                  id="comp_p4_getmusic-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p4/GETMusic.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p4_getmusic-visualizer"
+                  id="comp_p4_getmusic-player">
+                </midi-player>
+                <audio id="comp_p4_getmusic-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p4/Audio Export/GETMusic.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-8-4" name="tab-8">
+              <label for="tab-8-4">PopMAG</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p4/PopMAG.mid"
+                  id="comp_p4_popmag-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p4/PopMAG.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p4_popmag-visualizer"
+                  id="comp_p4_popmag-player">
+                </midi-player>
+                <audio id="comp_p4_popmag-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p4/Audio Export/PopMAG.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-8-5" name="tab-8">
+              <label for="tab-8-5">Lead Sheet (Input)</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p4/leadsheet.mid"
+                  id="comp_p4_leadsheet-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p4/leadsheet.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p4_leadsheet-visualizer"
+                  id="comp_p4_leadsheet-player">
+                </midi-player>
+                <audio id="comp_p4_leadsheet-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p4/Audio Export/leadsheet.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+          </div>
+      
+      
+          <p class='text-justify'></p>
+          <p class="h4"><b style="color:#6c06c0;">[Demo-15]</b> <b>East Dene</b></p>
+          <ul>
+            <li>Genre: Folk</li>
+            <li>Length: 32 bars</li>
+            <li>BPM: 100 </li>
+            <li>Source: Nottingham Dataset </li>
+          </ul>
+          <div class="tabs">
+            <div class="tabby-tab">
+              <input type="radio" id="tab-9-1" name="tab-9" checked>
+              <label for="tab-9-1">Ours</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p5/Ours.mid"
+                  id="comp_p5_ours-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p5/Ours.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p5_ours-visualizer"
+                  id="comp_p5_ours-player">
+                </midi-player>
+                <audio id="comp_p5_ours-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p5/Audio Export/Ours.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-9-2" name="tab-9">
+              <label for="tab-9-2">AMT</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p5/AMT.mid"
+                  id="comp_p5_amt-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p5/AMT.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p5_amt-visualizer"
+                  id="comp_p5_amt-player">
+                </midi-player>
+                <audio id="comp_p5_amt-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p5/Audio Export/AMT.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+                
+            <div class="tabby-tab">
+              <input type="radio" id="tab-9-3" name="tab-9">
+              <label for="tab-9-3">GETMusic</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p5/GETMusic.mid"
+                  id="comp_p5_getmusic-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p5/GETMusic.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p5_getmusic-visualizer"
+                  id="comp_p5_getmusic-player">
+                </midi-player>
+                <audio id="comp_p5_getmusic-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p5/Audio Export/GETMusic.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-9-4" name="tab-9">
+              <label for="tab-9-4">PopMAG</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p5/PopMAG.mid"
+                  id="comp_p5_popmag-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p5/PopMAG.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p5_popmag-visualizer"
+                  id="comp_p5_popmag-player">
+                </midi-player>
+                <audio id="comp_p5_popmag-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p5/Audio Export/PopMAG.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+        
+            <div class="tabby-tab">
+              <input type="radio" id="tab-9-5" name="tab-9">
+              <label for="tab-9-5">Lead Sheet (Input)</label>
+              <div class="tabby-content">
+                <midi-visualizer 
+                  src="demo/comparison/p5/leadsheet.mid"
+                  id="comp_p5_leadsheet-visualizer">
+                </midi-visualizer>
+                <midi-player
+                  src="demo/comparison/p5/leadsheet.mid"
+                  sound-font="demo/soundfonts/silence" 
+                  visualizer="#comp_p5_leadsheet-visualizer"
+                  id="comp_p5_leadsheet-player">
+                </midi-player>
+                <audio id="comp_p5_leadsheet-audio">
+                  <source type="audio/mpeg" src="demo/comparison/p5/Audio Export/leadsheet.mp3">
+                  Your browser does not support the audio tag.
+                </audio>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="container no-gutter small-padding">
+          <p class="h1"><hr class="primary"></p>
+          <h5>This site leverages <a href="https://volny.github.io/creative-theme-jekyll/" target="_blank">the jekyll template</a> and uses <a href="https://cifkao.github.io/html-midi-player/" target="_blank">html-midi-player</a> for MIDI visiualization and <a href="https://www.native-instruments.com/ni-tech-manuals/kontakt-factory-library-manual/en/welcome-to-the-kontakt-factory-library-2" target="_blank">Kontakt Factory Library 2</a>/<a href="https://www.bandlab.com/" target="_blank">BandLab</a> for MIDI-to-audio synthesis.</h5>
+        </div>
+      </section>
+
+      {% include scripts.html %}
+  </body>
+  <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
+
+  <script>
+    var i_vis;
+    var visualizers = document.getElementsByTagName("midi-visualizer")
+    for (i_vis = 0; i_vis < visualizers.length; i_vis++) {
+    visualizers[i_vis].config = {
+    noteHeight: 2.5,
+    pixelsPerTimeStep: 20,
+    minPitch: 32,
+    maxPitch: 96,
+    };
+    }
+
+    async function onDomReady() {
+        const players = document.getElementsByTagName('midi-player');
+        const audios = document.getElementsByTagName('audio');
+
+        for (let i = 0; i < players.length; i++) {
+        const player = players[i];
+        const audio = audios[i]
+
+        player.addEventListener('load', function () {
+            const SeekBar = player.shadowRoot.querySelector('.seek-bar');
+            SeekBar.addEventListener('input', function () {
+            audio.pause();
+            });
+            SeekBar.addEventListener('change', function () {
+            audio.currentTime = player.currentTime;
+            if (player.playing)
+            audio.play();
+            });
+        })
+        
+        player.addEventListener('start', function () {
+            audio.currentTime = player.currentTime;
+            audio.play();
+        });
+        player.addEventListener('stop', function () {
+            audio.pause();
+        });
+        }
+    }
+    document.addEventListener("DOMContentLoaded", onDomReady, false);
+  </script>
+</html> 

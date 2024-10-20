@@ -1,0 +1,913 @@
+<html lang="en">
+      
+<style>
+    /* Custom player style */
+    midi-player {
+      display: block;
+      width: inherit;
+      height: 25px;
+      margin: 0 0px 0rem 0px;
+      margin-top: 0;
+    }
+    
+    midi-player::part(control-panel) {
+      background: linear-gradient(#fefefe, #e9e9e9);
+      border: 1px solid #e9e9e9;
+      border-top: none;
+      border-radius: 0px 0px 10px 10px;
+    }
+    
+    midi-visualizer .piano-roll-visualizer {
+      background: #fefefe;
+      border: 1px solid #e9e9e9;
+      border-bottom: none;
+      border-radius: 0px 0px 0 0;
+      margin: 0 0px;
+      margin-bottom: 0;
+      width: inherit;
+      overflow: auto;
+    }
+    
+    midi-visualizer svg {
+          margin: 2px; }
+    
+    midi-visualizer svg rect.note {
+            opacity: calc(min(1, (var(--midi-velocity) + 30) / 128) * 0.75); }
+    
+    midi-visualizer svg rect.note.active {
+      opacity: calc(min(1, (var(--midi-velocity) + 30) / 128) * 0.9);
+      stroke: rgb(0, 0, 0);
+      stroke-width: 1;
+      stroke-opacity: 1; }
+    
+      midi-visualizer svg rect.note[data-program="0"] {
+        fill: #1f77b4; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="8"] {
+        fill: #2ca02c; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="16"] {
+        fill: #ffbb78; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="24"] {
+        fill: #07e1e9; opacity: 20%;}
+    
+      midi-visualizer svg rect.note[data-program="32"] {
+        fill: #9467bd; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="40"] {
+        fill: #8c564b; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="48"] {
+        fill: #e377c2; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="56"] {
+        fill: #ff7f0e; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="64"] {
+        fill: #bcbd22; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="72"] {
+        fill: #17becf; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="80"] {
+        fill: #1b9e77; opacity: 50%;}
+    
+      midi-visualizer svg rect.note[data-program="88"] {
+        fill: #d62728; }
+
+      midi-visualizer svg rect.note[data-program="89"] {
+        fill: #98df8a; opacity: 50%;}
+
+    
+    
+    
+      @import url(https://fonts.googleapis.com/css?family=Lato:400,700,900,300);
+      /* MAKE IT CUTE ----- */
+      .tabs {
+        position: relative;
+        display: flex;
+        min-height: 250;
+        border-radius: 10px 10px 0px 0px;
+        overflow: hidden;
+      }
+    
+      .tabby-tab {
+        width: 200px;
+      }
+    
+      .tabby-tab label {
+        display: block;
+        box-sizing: border-box;
+        /* tab content must clear this */
+          height: 25px;
+        
+        padding: 3px;
+        text-align: center;
+        background: #c4e7f0;
+        cursor: pointer;
+        border-radius: 10px 5px 10px 0px;
+      }
+    
+      .tabby-tab label:hover {
+        background: #82bcce;
+      }
+    
+      .tabby-content {
+        position: absolute;
+        left: 0px; bottom: 0; right: 0px;
+        /* clear the tab labels */
+          top: 25; 
+        padding: 0px;
+        border-radius: 0px 0px 0px 0px;
+        background: #ffffff;
+      }
+    
+      /* MAKE IT WORK ----- */
+      .tabby-tab [type=radio] { display: none; }
+      [type=radio]:checked ~ label {
+        background: #3fb2d5;
+        z-index: 2;
+      }
+    
+      [type=radio]:checked ~ label ~ .tabby-content {
+        z-index: 1;
+        /* show/hide */
+          opacity: 1;
+          transform: scale(1);
+      }
+    
+    
+</style>
+
+{% include head.html %}
+
+<body id="page-top">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                  <a class="page-scroll" href="#page-top">Abstract</a>
+                </li>
+                <li>
+                    <a class="page-scroll" href="#arr_demo">Accompaniment Arrangement Demo</a>
+                </li>
+                <li>
+                    <a class="page-scroll" href="#orc_demo">Orchestration Demo</a>
+                </li>
+                <li>
+                  <a class="page-scroll" href="comparison_to_baselines">Comparison to Baselines</a>
+                </li>
+                <li>
+                    <a class="page-scroll" href="ablation_study">Ablation Study</a>
+                </li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container-fluid -->
+  </nav>
+  
+<section class="bg-white">
+  <div class="container no-gutter small-padding" id="abstract">
+    <div class="col-lg-12 text-center">
+        <h2 class="section-heading">Structured Multi-Track Accompaniment Arrangement<br>via Style Prior Modelling</h2> 
+        <hr class="primary">
+        <h3 class="section-heading">Demo Page for NeurIPS-2024 Submission 17467</h3> 
+        <h3></h3>
+    </div>
+    
+    <div class="col-sm-12 small-padding">
+        <p class='text-justify'>
+          <b>Abstract</b>: In the realm of music AI, arranging rich and structured multi-track accompaniments from a simple lead sheet poses significant challenges in context coherency, music creativity, and computational efficiency. In this paper, we introduce a novel system that leverages prior modelling over disentangled style factors to address these challenges. Our method presents a two-stage process: initially, a piano arrangement is derived from the lead sheet by retrieving piano texture styles; subsequently, a multi-track orchestration is achieved by <em>infusing orchestral function styles into the piano arrangement</em>. The key design is to employ vector quantization and a unique multi-stream Transformer to model the <em>long-term</em> flow of orchestration style, leading to flexible and controllable music generation. Experiments show that by factorizing the arrangement task into interpretable sub-stages, our approach enhances generative capacity. Additionally, the system supports varied music genres and provides style control at different compositional hierarchies. Lastly, we demonstrate that our system delivers superior arrangement quality over existing baseline methods.
+        </p>
+    </div>
+    
+  </div>
+  
+  <div class="container no-gutter small-padding" id="arr_demo">  
+    <div class="col-lg-12 text-center"><p class="h1"><hr class="primary"></p></div>
+    <p class="h3">Accompaniment Arrangement Demo</p>
+    <p class='text-justify'>Our system specializes in <b><em>multi-track</em></b> accompaniment arrangement for <b><em>whole pieces</em></b> of music.  Given an input lead sheet, it first establishes the rough whole-song structure with a piano accompaniment and then orchestrates the piano into a complete multi-track arrangement. Besides supporting customizable (controllable) band instrumentation, this two-stage approach aligns with musicians' creative workflow. Our demos are presented with three tabs as follows: 1) <em>the multi-track arrangement</em>, 2) <em>the piano arrangement</em>, and 3) <em>the input lead sheet</em>. 
+    </p>
+
+    <p class='text-justify'></p>
+    <p class="h4"><b style="color:#6c06c0;">[Demo-01]</b> <b>Can You Feel the Love Tonight</b></p>
+    <ul>
+      <li>Genre: Pop</li>
+      <li>Length: 60 bars</li>
+      <li>BPM: 65</li>
+      <li>Instrumentation: <em style="color: #2ca02c;">Celesta</em>, <em style="color: #07e1e9;">Acoustic guitars</em>, <em style="color: #98df8a;">Electric Pianos</em>, <em style="color: #1f77b4;">Acoustic Piano</em>, <em style="color: #e377c2;">Violin</em>, <em style="color: #ff7f0e;">Brass Section</em>, and <em style="color: #9467bd;">Electric Bass</em>.</li>
+    </ul>
+    <div class="tabs">
+      <div class="tabby-tab">
+        <input type="radio" id="tab-1-1" name="tab-1" checked>
+        <label for="tab-1-1">Multi-Track Arrangement</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/p1/multitrack.mid"
+            id="demo_p1_multitrack-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/p1/multitrack.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#demo_p1_multitrack-visualizer"
+            id="demo_p1_multitrack-player">
+          </midi-player>
+          <audio id="demo_p1_multitrack-audio">
+            <source type="audio/mpeg" src="demo/p1/Audio Export/multitrack.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+
+      <div class="tabby-tab">
+        <input type="radio" id="tab-1-2" name="tab-1">
+        <label for="tab-1-2">Piano Arrangement</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/p1/piano.mid"
+            id="demo_p1_piano-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/p1/piano.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#demo_p1_piano-visualizer"
+            id="demo_p1_piano-player">
+          </midi-player>
+          <audio id="demo_p1_piano-audio">
+            <source type="audio/mpeg" src="demo/p1/Audio Export/piano.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+
+      <div class="tabby-tab">
+        <input type="radio" id="tab-1-3" name="tab-1">
+        <label for="tab-1-3">Lead Sheet (Input)</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/p1/leadsheet.mid"
+            id="demo_p1_leadsheet-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/p1/leadsheet.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#demo_p1_leadsheet-visualizer"
+            id="demo_p1_leadsheet-player">
+          </midi-player>
+          <audio id="demo_p1_leadsheet-audio">
+            <source type="audio/mpeg" src="demo/p1/Audio Export/leadsheet.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+    </div>
+
+
+
+  <p class='text-justify'></p>
+  <p class="h4"><b style="color:#6c06c0;">[Demo-02]</b> <b>All I Want for Christmas is You</b></p>
+  <ul>
+    <li>Genre: Pop</li>
+    <li>Length: 90 bars</li>
+    <li>BPM: 140</li>
+    <li>Instrumentation: <em style="color: #ffbb78;">Organ</em>, <em style="color: #bcbd22;">Choir Aahs</em>, <em style="color: #07e1e9;">Jazz Guitars</em>, <em style="color: #e377c2;">Violin</em>, <em style="color: #1f77b4;">Acoustic Piano</em>, and <em style="color: #9467bd;">Acoustic Bass</em>.</li>
+  </ul>
+  <div class="tabs">
+    <div class="tabby-tab">
+      <input type="radio" id="tab-2-1" name="tab-2" checked>
+      <label for="tab-2-1">Multi-Track Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p2/multitrack.mid"
+          id="demo_p2_multitrack-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p2/multitrack.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p2_multitrack-visualizer"
+          id="demo_p2_multitrack-player">
+        </midi-player>
+        <audio id="demo_p2_multitrack-audio">
+          <source type="audio/mpeg" src="demo/p2/Audio Export/multitrack.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-2-2" name="tab-2">
+      <label for="tab-2-2">Piano Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p2/piano.mid"
+          id="demo_p2_piano-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p2/piano.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p2_piano-visualizer"
+          id="demo_p2_piano-player">
+        </midi-player>
+        <audio id="demo_p2_piano-audio">
+          <source type="audio/mpeg" src="demo/p2/Audio Export/piano.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-2-3" name="tab-2">
+      <label for="tab-2-3">Lead Sheet (Input)</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p2/leadsheet.mid"
+          id="demo_p2_leadsheet-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p2/leadsheet.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p2_leadsheet-visualizer"
+          id="demo_p2_leadsheet-player">
+        </midi-player>
+        <audio id="demo_p2_leadsheet-audio">
+          <source type="audio/mpeg" src="demo/p2/Audio Export/leadsheet.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+  </div>
+
+
+
+  <p class='text-justify'></p>
+  <p class="h4"><b style="color:#6c06c0;">[Demo-03]</b> <b>Over the Rainbow</b></p>
+  <ul>
+    <li>Genre: Ballad</li>
+    <li>Length: 32 bars</li>
+    <li>BPM: 70 </li>
+    <li>Instrumentation: <em style="color: #bcbd22;">Oboe</em>, <em style="color: #98df8a;">Choir Aahs</em>, <em style="color: #e377c2;">String Ensembles</em>, <em style="color: #ffbb78;">Electric Pianos</em>, <em style="color: #1f77b4;">Acoustic Piano</em>, <em style="color: #07e1e9;">Acoustic Guitar</em>, <em style="color: #9467bd;">Electric Bass</em>, and <em style="color: #8c564b;">Contrabass</em>.</li>
+  </ul>
+  <div class="tabs">
+    <div class="tabby-tab">
+      <input type="radio" id="tab-4-1" name="tab-4" checked>
+      <label for="tab-4-1">Multi-Track Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p4/multitrack.mid"
+          id="demo_p4_multitrack-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p4/multitrack.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p4_multitrack-visualizer"
+          id="demo_p4_multitrack-player">
+        </midi-player>
+        <audio id="demo_p4_multitrack-audio">
+          <source type="audio/mpeg" src="demo/p4/Audio Export/multitrack.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-4-2" name="tab-4">
+      <label for="tab-4-2">Piano Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p4/piano.mid"
+          id="demo_p4_piano-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p4/piano.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p4_piano-visualizer"
+          id="demo_p4_piano-player">
+        </midi-player>
+        <audio id="demo_p4_piano-audio">
+          <source type="audio/mpeg" src="demo/p4/Audio Export/piano.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-4-3" name="tab-4">
+      <label for="tab-4-3">Lead Sheet (Input)</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p4/leadsheet.mid"
+          id="demo_p4_leadsheet-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p4/leadsheet.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p4_leadsheet-visualizer"
+          id="demo_p4_leadsheet-player">
+        </midi-player>
+        <audio id="demo_p4_leadsheet-audio">
+          <source type="audio/mpeg" src="demo/p4/Audio Export/leadsheet.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+  </div>
+
+
+  <p class='text-justify'></p>
+  <p class="h4"><b style="color:#6c06c0;">[Demo-04]</b> <b>Boogie Woogie Bugle Boy</b></p>
+  <ul>
+    <li>Genre: Jazz</li>
+    <li>Length: 36 bars</li>
+    <li>BPM: 120 </li>
+    <li>Instrumentation: <em style="color: #2ca02c;">Electric Pianos</em>, <em style="color: #1f77b4;">Acoustic Piano</em>, <em style="color: #07e1e9;">Acoustic Guitar</em>, and <em style="color: #9467bd;">Acoustic Bass</em>.</li>
+  </ul>
+  <div class="tabs">
+    <div class="tabby-tab">
+      <input type="radio" id="tab-3-1" name="tab-3" checked>
+      <label for="tab-3-1">Multi-Track Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p3/multitrack.mid"
+          id="demo_p3_multitrack-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p3/multitrack.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p3_multitrack-visualizer"
+          id="demo_p3_multitrack-player">
+        </midi-player>
+        <audio id="demo_p3_multitrack-audio">
+          <source type="audio/mpeg" src="demo/p3/Audio Export/multitrack.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-3-2" name="tab-3">
+      <label for="tab-3-2">Piano Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p3/piano.mid"
+          id="demo_p3_piano-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p3/piano.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p3_piano-visualizer"
+          id="demo_p3_piano-player">
+        </midi-player>
+        <audio id="demo_p3_piano-audio">
+          <source type="audio/mpeg" src="demo/p3/Audio Export/piano.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-3-3" name="tab-3">
+      <label for="tab-3-3">Lead Sheet (Input)</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p3/leadsheet.mid"
+          id="demo_p3_leadsheet-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p3/leadsheet.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p3_leadsheet-visualizer"
+          id="demo_p3_leadsheet-player">
+        </midi-player>
+        <audio id="demo_p3_leadsheet-audio">
+          <source type="audio/mpeg" src="demo/p3/Audio Export/leadsheet.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+  </div>
+
+
+
+  <p class='text-justify'></p>
+  <p class="h4"><b style="color:#6c06c0;">[Demo-05]</b> <b>Always True to You in my Fashion</b></p>
+  <ul>
+    <li>Genre: Jazz</li>
+    <li>Length: 44 bars</li>
+    <li>BPM: 120 </li>
+    <li>Instrumentation: <em style="color: #ffbb78;">Organ</em>, <em style="color: #ff7f0e;">Choir Aahs</em>, <em style="color: #bcbd22;">Clarinet</em>, <em style="color: #2ca02c;">Electric Piano</em>, <em style="color: #07e1e9;">Acoustic Guitar</em>, <em style="color: #e377c2;">Violin</em>, and <em style="color: #8c564b;">Cello</em>.</li>
+  </ul>
+  <div class="tabs">
+    <div class="tabby-tab">
+      <input type="radio" id="tab-5-1" name="tab-5" checked>
+      <label for="tab-5-1">Multi-Track Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p5/multitrack.mid"
+          id="demo_p5_multitrack-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p5/multitrack.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p5_multitrack-visualizer"
+          id="demo_p5_multitrack-player">
+        </midi-player>
+        <audio id="demo_p5_multitrack-audio">
+          <source type="audio/mpeg" src="demo/p5/Audio Export/multitrack.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-5-2" name="tab-5">
+      <label for="tab-5-2">Piano Arrangement</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p5/piano.mid"
+          id="demo_p5_piano-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p5/piano.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p5_piano-visualizer"
+          id="demo_p5_piano-player">
+        </midi-player>
+        <audio id="demo_p5_piano-audio">
+          <source type="audio/mpeg" src="demo/p5/Audio Export/piano.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+
+    <div class="tabby-tab">
+      <input type="radio" id="tab-5-3" name="tab-5">
+      <label for="tab-5-3">Lead Sheet (Input)</label>
+      <div class="tabby-content">
+        <midi-visualizer 
+          src="demo/p5/leadsheet.mid"
+          id="demo_p5_leadsheet-visualizer">
+        </midi-visualizer>
+        <midi-player
+          src="demo/p5/leadsheet.mid"
+          sound-font="demo/soundfonts/silence" 
+          visualizer="#demo_p5_leadsheet-visualizer"
+          id="demo_p5_leadsheet-player">
+        </midi-player>
+        <audio id="demo_p5_leadsheet-audio">
+          <source type="audio/mpeg" src="demo/p5/Audio Export/leadsheet.mp3">
+          Your browser does not support the audio tag.
+        </audio>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <div class="container no-gutter small-padding" id="orc_demo">
+    <p class="h1"><hr class="primary"></p>
+    <p class="h3">Orchestration Demo</p>
+    <p class='text-justify'>The second stage of our system can also work individually as an orchestrator. Given a piano accompaniment score, it specializes in piano-to-<b><em>multi-track</em></b> arrangement for <b><em>whole pieces</em></b> of music, where customizable (controllable) band instrumentation is supported. Our orchestration demos are presented with two tabs as follows: 1) <em>the multi-track arrangement</em>, and 2) <em>the input piano score</em>. 
+    </p>
+
+    <p class='text-justify'></p>
+    <p class="h4"><b style="color:#6c06c0;">[Demo-06]</b> <b>The Moon Represents My Heart</b></p>
+    <ul>
+      <li>Genre: Folk</li>
+      <li>Length: 67 bars</li>
+      <li>BPM: 70</li>
+      <li>Instrumentation: <em style="color: #2ca02c;">Celesta</em>, <em style="color: #07e1e9;">Acoustic guitars</em>, <em style="color: #bcbd22;">Jazz Guitar</em>, <em style="color: #ffbb78;">Electric Piano</em>, <em style="color: #e377c2;">String Ensemble</em>, <em style="color: #ff7f0e;">Brass Section</em>, <em style="color: #8c564b;">Clarinet</em>, and <em style="color: #9467bd;">Electric Bass</em>.</li>
+    </ul>
+    <div class="tabs">
+      <div class="tabby-tab">
+        <input type="radio" id="tab-11-1" name="tab-11" checked>
+        <label for="tab-11-1">Multi-Track Arrangement</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p1/multitrack.mid"
+            id="orchestration_p1_multitrack-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p1/multitrack.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p1_multitrack-visualizer"
+            id="orchestration_p1_multitrack-player">
+          </midi-player>
+          <audio id="orchestration_p1_multitrack-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p1/Audio Export/multitrack.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+
+      <div class="tabby-tab">
+        <input type="radio" id="tab-11-2" name="tab-11">
+        <label for="tab-11-2">Piano Score (Input)</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p1/piano.mid"
+            id="orchestration_p1_piano-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p1/piano.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p1_piano-visualizer"
+            id="orchestration_p1_piano-player">
+          </midi-player>
+          <audio id="orchestration_p1_piano-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p1/Audio Export/piano.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+    </div>
+
+
+    <p class='text-justify'></p>
+    <p class="h4"><b style="color:#6c06c0;">[Demo-07]</b> <b>The Smurfs Theme</b></p>
+    <ul>
+      <li>Genre: Anime</li>
+      <li>Length: 42 bars</li>
+      <li>BPM: 100</li>
+      <li>Instrumentation: <em style="color: #2ca02c;">Celesta</em>, <em style="color: #ffbb78;">Electric Piano</em>, <em style="color: #ff7f0e;">Trumpet</em>, <em style="color: #e377c2;">Violin</em>, <em style="color: #07e1e9;">Acoustic Guitars</em>, and <em style="color: #9467bd;">Electric Bass</em>.</li>
+    </ul>
+    <div class="tabs">
+      <div class="tabby-tab">
+        <input type="radio" id="tab-12-1" name="tab-12" checked>
+        <label for="tab-12-1">Multi-Track Arrangement</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p2/multitrack.mid"
+            id="orchestration_p2_multitrack-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p2/multitrack.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p2_multitrack-visualizer"
+            id="orchestration_p2_multitrack-player">
+          </midi-player>
+          <audio id="orchestration_p2_multitrack-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p2/Audio Export/multitrack.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+
+      <div class="tabby-tab">
+        <input type="radio" id="tab-12-2" name="tab-12">
+        <label for="tab-12-2">Piano Score (Input)</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p2/piano.mid"
+            id="orchestration_p2_piano-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p2/piano.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p2_piano-visualizer"
+            id="orchestration_p2_piano-player">
+          </midi-player>
+          <audio id="orchestration_p2_piano-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p2/Audio Export/piano.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+    </div>
+
+
+    <p class='text-justify'></p>
+    <p class="h4"><b style="color:#6c06c0;">[Demo-08]</b> <b>Toki no Nagare ni Mi o Makase</b></p>
+    <ul>
+      <li>Genre: Pop</li>
+      <li>Length: 69 bars</li>
+      <li>BPM: 70</li>
+      <li>Instrumentation: <em style="color: #07e1e9;">Acoustic Guitar</em>, <em style="color: #ffbb78;">Jazz Guitar</em>, <em style="color: #8c564b;">Violin</em>, <em style="color: #e377c2;">String Ensembles</em>, <em style="color: #1f77b4;">Acoustic Piano</em>, and <em style="color: #9467bd;">Electric Bass</em>.</li>
+    </ul>
+    <div class="tabs">
+      <div class="tabby-tab">
+        <input type="radio" id="tab-13-1" name="tab-13" checked>
+        <label for="tab-13-1">Multi-Track Arrangement</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p3/multitrack.mid"
+            id="orchestration_p3_multitrack-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p3/multitrack.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p3_multitrack-visualizer"
+            id="orchestration_p3_multitrack-player">
+          </midi-player>
+          <audio id="orchestration_p3_multitrack-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p3/Audio Export/multitrack.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+
+      <div class="tabby-tab">
+        <input type="radio" id="tab-13-2" name="tab-13">
+        <label for="tab-13-2">Piano Score (Input)</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p3/piano.mid"
+            id="orchestration_p3_piano-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p3/piano.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p3_piano-visualizer"
+            id="orchestration_p3_piano-player">
+          </midi-player>
+          <audio id="orchestration_p3_piano-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p3/Audio Export/piano.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+    </div>
+
+
+    <p class='text-justify'></p>
+    <p class="h4"><b style="color:#6c06c0;">[Demo-09]</b> <b>Suddenly Miss You so Bad</b></p>
+    <ul>
+      <li>Genre: Pop</li>
+      <li>Length: 71 bars</li>
+      <li>BPM: 70</li>
+      <li>Instrumentation: <em style="color: #e377c2;">String Ensembles</em>, <em style="color: #ffbb78;">Electric Pianos</em>, <em style="color: #17becf;">Clarinet</em>, <em style="color: #98df8a;">Choir Aahs</em>, <em style="color: #07e1e9;">Acoustic Guitars</em>, and <em style="color: #9467bd;">Electric Bass</em>.</li>
+    </ul>
+    <div class="tabs">
+      <div class="tabby-tab">
+        <input type="radio" id="tab-14-1" name="tab-14" checked>
+        <label for="tab-14-1">Multi-Track Arrangement</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p4/multitrack.mid"
+            id="orchestration_p4_multitrack-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p4/multitrack.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p4_multitrack-visualizer"
+            id="orchestration_p4_multitrack-player">
+          </midi-player>
+          <audio id="orchestration_p4_multitrack-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p4/Audio Export/multitrack.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+
+      <div class="tabby-tab">
+        <input type="radio" id="tab-14-2" name="tab-14">
+        <label for="tab-14-2">Piano Score (Input)</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p4/piano.mid"
+            id="orchestration_p4_piano-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p4/piano.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p4_piano-visualizer"
+            id="orchestration_p4_piano-player">
+          </midi-player>
+          <audio id="orchestration_p4_piano-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p4/Audio Export/piano.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+    </div>
+
+
+    <p class='text-justify'></p>
+    <p class="h4"><b style="color:#6c06c0;">[Demo-10]</b> <b>Floral Sea</b></p>
+    <ul>
+      <li>Genre: Pop</li>
+      <li>Length: 80 bars</li>
+      <li>BPM: 75</li>
+      <li>Instrumentation: <em style="color: #ffbb78;">Electric Pianos</em>, <em style="color: #2ca02c;">Jazz Guitars</em>, <em style="color: #07e1e9;">Acoustic Guitar</em>, <em style="color: #98df8a;">Choir Aahs</em>, <em style="color: #e377c2;">Violin</em>, and <em style="color: #9467bd;">Electric Bass</em>.</li>
+    </ul>
+    <div class="tabs">
+      <div class="tabby-tab">
+        <input type="radio" id="tab-15-1" name="tab-15" checked>
+        <label for="tab-15-1">Multi-Track Arrangement</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p5/multitrack.mid"
+            id="orchestration_p5_multitrack-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p5/multitrack.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p5_multitrack-visualizer"
+            id="orchestration_p5_multitrack-player">
+          </midi-player>
+          <audio id="orchestration_p5_multitrack-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p5/Audio Export/multitrack.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+
+      <div class="tabby-tab">
+        <input type="radio" id="tab-15-2" name="tab-15">
+        <label for="tab-15-2">Piano Score (Input)</label>
+        <div class="tabby-content">
+          <midi-visualizer 
+            src="demo/orchestration/p5/piano.mid"
+            id="orchestration_p5_piano-visualizer">
+          </midi-visualizer>
+          <midi-player
+            src="demo/orchestration/p5/piano.mid"
+            sound-font="demo/soundfonts/silence" 
+            visualizer="#orchestration_p5_piano-visualizer"
+            id="orchestration_p5_piano-player">
+          </midi-player>
+          <audio id="orchestration_p5_piano-audio">
+            <source type="audio/mpeg" src="demo/orchestration/p5/Audio Export/piano.mp3">
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="container no-gutter small-padding" id="arr_demo">  
+    <div class="col-lg-12 text-center"><p class="h1"><hr class="primary"></p></div>
+    <p class="h3">More Demos</p>
+    <ul>
+      <li><p><a href="comparison_to_baselines">Comparison to Baselines</a></p></li>
+      <li><p><a href="ablation_study">Ablation Study on Style Prior Architecture</a></p></li>
+    </ul>
+  </div>
+
+
+
+  <div class="container no-gutter small-padding">
+    <p class="h1"><hr class="primary"></p>
+    <h5>This site leverages <a href="https://volny.github.io/creative-theme-jekyll/" target="_blank">the jekyll template</a> and uses <a href="https://cifkao.github.io/html-midi-player/" target="_blank">html-midi-player</a> for MIDI visiualization and <a href="https://www.native-instruments.com/ni-tech-manuals/kontakt-factory-library-manual/en/welcome-to-the-kontakt-factory-library-2" target="_blank">Kontakt Factory Library 2</a>/<a href="https://www.bandlab.com/" target="_blank">BandLab</a> for MIDI-to-audio synthesis.</h5>
+  </div>
+
+</section>
+
+{% include scripts.html %}
+
+<script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
+
+<script>
+
+var i_vis;
+var visualizers = document.getElementsByTagName("midi-visualizer")
+for (i_vis = 0; i_vis < visualizers.length; i_vis++) {
+  visualizers[i_vis].config = {
+  noteHeight: 2.5,
+  pixelsPerTimeStep: 20,
+  minPitch: 32,
+  maxPitch: 96,
+  };
+}
+
+
+async function onDomReady() {
+    const players = document.getElementsByTagName('midi-player');
+    const audios = document.getElementsByTagName('audio');
+
+    for (let i = 0; i < players.length; i++) {
+      const player = players[i];
+      const audio = audios[i]
+
+      player.addEventListener('load', function () {
+        const SeekBar = player.shadowRoot.querySelector('.seek-bar');
+        SeekBar.addEventListener('input', function () {
+          audio.pause();
+        });
+        SeekBar.addEventListener('change', function () {
+          audio.currentTime = player.currentTime;
+          if (player.playing)
+          audio.play();
+        });
+      })
+      
+      player.addEventListener('start', function () {
+        audio.currentTime = player.currentTime;
+        audio.play();
+      });
+      player.addEventListener('stop', function () {
+        audio.pause();
+      });
+    }
+}
+document.addEventListener("DOMContentLoaded", onDomReady, false);
+
+
+
+</script>
+</body>
+</html>
