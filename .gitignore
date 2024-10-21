@@ -3,5 +3,4 @@ _site/
 *.cwp
 *.pyc
 *.py
-demo/comparison
 demo/orchestration
