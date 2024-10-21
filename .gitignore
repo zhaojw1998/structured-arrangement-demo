@@ -3,6 +3,5 @@ _site/
 *.cwp
 *.pyc
 *.py
-demo/ablation
 demo/comparison
 demo/orchestration
