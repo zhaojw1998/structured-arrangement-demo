@@ -3,3 +3,9 @@ _site/
 *.cwp
 *.pyc
 *.py
+demo/p3
+demo/p4
+demo/p5
+demo/ablation
+demo/comparison
+demo/orchestration
